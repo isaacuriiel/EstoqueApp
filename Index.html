@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Controle de Estoque</title>
+  <!-- OCR -->
+  <script src="node_modules/tesseract.js/dist/tesseract.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* Reset básico */
+    * { box-sizing: border-box; margin:0; padding:0; }
+
+    body { font-family: Arial, sans-serif; background:#f4f4f4; color:#333; }
+
+    header { background:#333; color:#fff; padding:15px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; }
+    header h1 { font-size:1.2rem; margin-bottom:10px; }
+    .actions { display:flex; flex-wrap:wrap; gap:5px; }
+    .actions button { padding:8px; border:none; border-radius:4px; cursor:pointer; background:#555; color:#fff; font-size:0.9rem; }
+
+    .dropdown { position:relative; }
+    .dropbtn { background:#777; }
+    .dropdown-content { display:none; position:absolute; background:#fff; min-width:160px; box-shadow:0px 8px 16px rgba(0,0,0,0.2); z-index:1; }
+    .dropdown-content button { width:100%; border:none; background:none; padding:10px; text-align:left; cursor:pointer; }
+    .dropdown:hover .dropdown-content { display:block; }
+
+    .usuario-status { margin-top:5px; font-size:0.8rem; }
+
+    main { padding:10px; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; background:#fff; font-size:0.9rem; }
+    th, td { border:1px solid #ccc; padding:6px; text-align:left; }
+    th { background:#eee; }
+
+    footer { background:#333; color:#fff; text-align:center; padding:10px; font-size:0.8rem; }
+
+    .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
+    .modal-content { background:#fff; margin:10% auto; padding:20px; width:95%; max-width:500px; border-radius:5px; }
+    .modal-content h2 { margin-bottom:10px; font-size:1.1rem; }
+    .modal-content label { display:block; margin:5px 0; font-size:0.9rem; }
+    .modal-content input { width:100%; padding:6px; margin-top:3px; }
+    .modal-actions { margin-top:15px; text-align:right; }
+    .modal-actions button { margin-left:10px; padding:6px 10px; }
+
+    #preview { max-width:100%; display:block; margin-top:10px; }
+
+    /* Dark mode */
+    .dark { background:#111; color:#eee; }
+    .dark table { background:#222; color:#eee; }
+    .dark th { background:#444; }
+    .dark header, .dark footer { background:#000; }
+  </style>
+</head>
+<body>
+  <!-- Cabeçalho -->
+  <header>
+    <h1>📊 Controle de Estoque</h1>
+    <div class="actions">
+      <button id="btnLogin" onclick="abrirModal('modalLogin')">👤 Login</button>
+      <button id="btnLogout" onclick="logout()" style="display:none">🚪 Sair</button>
+      <button onclick="abrirModal('modalProduto')">➕ Produto</button>
+      <button onclick="abrirModal('modalRelatorios')">📈 Relatórios</button>
+      <div class="dropdown">
+        <button class="dropbtn">⋯ Mais opções</button>
+        <div class="dropdown-content">
+          <button onclick="abrirModal('modalEntrada')">📦 Entrada</button>
+          <button onclick="abrirModal('modalSaida')">📤 Saída</button>
+          <button onclick="abrirModal('modalNotificacoes')">🔔 Notificações</button>
+          <button onclick="exportarBackup()">💾 Backup</button>
+          <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+          <button onclick="abrirModal('modalScanner')">📷 Scanner</button>
+        </div>
+      </div>
+    </div>
+    <p id="usuarioAtual" class="usuario-status">Não logado</p>
+  </header>
+
+  <!-- Tabela principal -->
+  <main>
+    <table id="tabelaEstoque">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Produto</th>
+          <th>Categoria</th>
+          <th>Preço venda</th>
+          <th>Quantidade</th>
+          <th>Validade</th>
+          <th>Limite mínimo</th>
+          <th>Ações</th>
+          <th>Detalhes</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <!-- Modais -->
+  <div id="modalLogin" class="modal">
+    <div class="modal-content">
+      <h2>👤 Login</h2>
+      <label>Usuário: <input id="usuarioLogin" /></label>
+      <label>Senha: <input id="senhaLogin" type="password" /></label>
+      <div class="modal-actions">
+        <button onclick="executarLogin()">Entrar</button>
+        <button onclick="fecharModal('modalLogin')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalProduto" class="modal">
+    <div class="modal-content">
+      <h2>Novo Produto</h2>
+      <label>Código: <input id="codigoProduto" /></label>
+      <label>Nome: <input id="nomeProduto" /></label>
+      <label>Categoria: <input id="categoriaProduto" /></label>
+      <label>Preço de venda: <input id="precoVendaProduto" type="number" step="0.01" /></label>
+      <label>Quantidade: <input id="quantidadeProduto" type="number" /></label>
+      <label>Validade: <input id="validadeProduto" type="date" /></label>
+      <label>Limite mínimo: <input id="limiteProduto" type="number" /></label>
+      <div class="modal-actions">
+        <button onclick="adicionarProduto()">Salvar</button>
+        <button onclick="fecharModal('modalProduto')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scanner -->
+  <div id="modalScanner" class="modal">
+    <div class="modal-content">
+      <h2>📷 Scanner de Produtos</h2>
+      <button onclick="abrirCamera()">Tirar Foto</button>
+      <img id="preview" />
+      <input type="file" accept="image/*,.pdf" onchange="processarArquivo(this.files)" />
+      <h3>Texto reconhecido:</h3>
+      <pre id="resultadoOCR"></pre>
+      <div class="modal-actions">
+        <button onclick="fecharModal('modalScanner')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer>
+    <p><strong>Créditos:</strong> Isaac Uriel & Copilot</p>
+    <p><strong>Última atualização:</strong> Dezembro 2025</p>
+    <p>© Sistema de Estoque - Todos os direitos reservados</p>
+  </footer>
+
+  <!-- Script -->
+  <script>
+    let estoque = [];
+
+    function abrirModal(id){ document.getElementById(id).style.display='block'; }
+    function fecharModal(id){ document.getElementById(id).style.display='none'; }
+
+    function adicionarProduto(){
+      let produto = {
+        codigo: document.getElementById('codigoProduto').value,
+        produto: document.getElementById('nomeProduto').value,
+        categoria: document.getElementById('categoriaProduto').value,
+        precoVenda: parseFloat(document.getElementById('precoVendaProduto').value),
+        quantidade: parseInt(document.getElementById('quantidadeProduto').value),
+        validade: document.getElementById('validadeProduto').value,
+        limite: parseInt(document.getElementById('limiteProduto').value)
+      };
+      estoque.push(produto);
+      renderizarTabela();
+      fecharModal('modalProduto');
+    }
+
+    function renderizarTabela(){
+      let tbody = document.querySelector('#tabelaEstoque tbody');
+      tbody.innerHTML='';
+      estoque.forEach(item=>{
+        tbody.innerHTML += `<tr>
+        <td>${item.produto}</td>
+          <td>${item.categoria}</td>
+          <td>${item.precoVenda || 0}</td>
+          <td>${item.quantidade || 0}</td>
+          <td>${item.validade || ''}</td>
+          <td>${item.limite || 0}</td>
+          <td><button onclick="editarProduto('${item.codigo}')">✏️</button></td>
+          <td><button onclick="detalhesProduto('${item.codigo}')">🔎</button></td>
+        </tr>`;
+      });
+    }
+
+    // Funções de edição e detalhes (placeholders)
+    function editarProduto(codigo){
+      alert("Função de edição para código: " + codigo);
+    }
+
+    function detalhesProduto(codigo){
+      alert("Detalhes do produto código: " + codigo);
+    }
+
+    // OCR + Scanner
+    function abrirCamera(){
+      alert("Cordova Camera plugin deve estar instalado para funcionar no celular.");
+    }
+
+    function processarArquivo(files){
+      let file = files[0];
+      let reader = new FileReader();
+      reader.onload = function(e){
+        let imgData = e.target.result;
+        document.getElementById('preview').src = imgData;
+        reconhecerTexto(imgData);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function reconhecerTexto(imageData){
+      Tesseract.recognize(imageData, 'por', { logger: m => console.log(m) })
+        .then(({ data: { text } }) => {
+          document.getElementById('resultadoOCR').innerText = text;
+          atualizarEstoqueOCR(text);
+        })
+        .catch(err => {
+          alert("Erro no OCR: " + err.message);
+        });
+    }
+
+    function atualizarEstoqueOCR(texto){
+      let linhas = texto.split("\n");
+      linhas.forEach(linha=>{
+        let partes = linha.split("-");
+        if(partes.length===2){
+          let produto = partes[0].trim();
+          let quantidade = parseInt(partes[1].trim());
+          if(!isNaN(quantidade)){
+            estoque.push({
+              codigo: gerarCodigo(),
+              produto,
+              categoria: "OCR",
+              precoVenda: 0,
+              quantidade,
+              validade: "",
+              limite: 0
+            });
+          }
+        }
+      });
+      renderizarTabela();
+    }
+
+    function gerarCodigo(){
+      return "OCR" + Math.floor(Math.random()*10000);
+    }
+
+    // Login simples
+    function executarLogin(){
+      let usuario = document.getElementById('usuarioLogin').value;
+      let senha = document.getElementById('senhaLogin').value;
+      if((usuario==="admin" && senha==="1234") || 
+         (usuario==="estoque" && senha==="5678") || 
+         (usuario==="isaac" && senha==="9999")){
+        document.getElementById('usuarioAtual').innerText = "Logado como: " + usuario;
+        document.getElementById('btnLogin').style.display="none";
+        document.getElementById('btnLogout').style.display="inline-block";
+        fecharModal('modalLogin');
+      } else {
+        alert("Usuário ou senha inválidos!");
+      }
+    }
+
+    function logout(){
+      document.getElementById('usuarioAtual').innerText = "Não logado";
+      document.getElementById('btnLogin').style.display="inline-block";
+      document.getElementById('btnLogout').style.display="none";
+    }
+
+    // Dark Mode simples
+    function toggleDarkMode(){
+      document.body.classList.toggle("dark");
+    }
+
+    // Backup (placeholder)
+    function exportarBackup(){
+      alert("Função de exportar backup ainda não implementada.");
+    }
+  </script>
+</body>
+</html>
