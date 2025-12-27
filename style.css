@@ -1,0 +1,262 @@
+/* ===== Layout geral ===== */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: #f4f6f9;
+  color: #333;
+}
+
+/* ===== Cabeçalho ===== */
+header {
+  background: linear-gradient(90deg, #0066cc, #0099ff);
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h1 { margin: 0; }
+.usuario-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  background: rgba(255,255,255,0.15);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* ===== Botões principais ===== */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.actions button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  color: #0066cc;
+  font-weight: bold;
+  transition: 0.25s;
+}
+.actions button:hover {
+  background: #d9f0ff;
+  transform: translateY(-1px);
+}
+
+/* ===== Dropdown ===== */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropbtn {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  color: #0066cc;
+  font-weight: bold;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  border-radius: 6px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  flex-direction: column;
+}
+.dropdown-content button {
+  background: none;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  color: #0066cc;
+}
+.dropdown-content button:hover {
+  background-color: #e6f7ff;
+}
+.dropdown:hover .dropdown-content {
+  display: flex;
+}
+
+/* ===== Tabela ===== */
+main { padding: 20px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+}
+th {
+  background: #0099ff;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+tr:nth-child(even) { background: #f9fcff; }
+tr:hover { background: #eef8ff; }
+tr td[colspan="9"] {
+  background: #e7eef6;
+  font-weight: bold;
+  text-align: left;
+  padding: 10px 12px;
+}
+td button {
+  margin: 0 4px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f2f6ff;
+  color: #0057b7;
+  font-weight: 600;
+}
+td button:hover { background: #dce9ff; }
+
+/* ===== Alertas ===== */
+.estoque-baixo { background: #ffe5e5 !important; }
+.validade-alerta { background: #fff3cd !important; }
+.vencido { color: #d9534f; font-weight: bold; }
+.proximo { color: #f0ad4e; font-weight: bold; }
+
+/* ===== Modais ===== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  margin: 6% auto;
+  width: 420px;
+  max-width: 92%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.modal-content h2 { margin-top: 0; color: #0066cc; }
+.modal-content label {
+  display: block;
+  margin: 10px 0;
+  font-weight: 500;
+}
+.modal-content input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid #cfd8e3;
+  border-radius: 6px;
+  outline: none;
+}
+.modal-content input:focus {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0,102,204,0.15);
+}
+.modal-actions {
+  text-align: right;
+  margin-top: 12px;
+}
+.modal-actions button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.modal-actions button:first-child { background: #28a745; color: white; }
+.modal-actions button:first-child:hover { background: #218838; }
+.modal-actions button:last-child { background: #ccc; }
+.modal-actions button:last-child:hover { background: #999; color: white; }
+.login-dica { font-size: 12px; color: #777; margin-top: 8px; }
+
+/* ===== Rodapé ===== */
+footer {
+  background: #0066cc;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  margin-top: 20px;
+}
+footer p { margin: 5px 0; }
+
+/* ===== Dark Mode ===== */
+body.dark-mode {
+  background: #121212;
+  color: #eee;
+}
+body.dark-mode header {
+  background: linear-gradient(90deg, #222, #444);
+}
+body.dark-mode .usuario-status {
+  background: rgba(255,255,255,0.1);
+}
+body.dark-mode .actions button,
+body.dark-mode .dropbtn {
+  background: #2a2a2a;
+  color: #eee;
+}
+body.dark-mode .dropdown-content {
+  background-color: #2a2a2a;
+}
+body.dark-mode .dropdown-content button {
+  color: #eee;
+}
+body.dark-mode table {
+  background: #1e1e1e;
+  color: #eee;
+}
+body.dark-mode th {
+  background: #333;
+  color: #eee;
+}
+body.dark-mode tr:nth-child(even) {
+  background: #2a2a2a;
+}
+body.dark-mode td button {
+  background: #2c2c2c;
+  color: #d0e2ff;
+}
+body.dark-mode td button:hover {
+  background: #3a3a3a;
+}
+body.dark-mode .modal-content {
+  background: #1e1e1e;
+  color: #eee;
+}
+body.dark-mode .modal-content input {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #eee;
+}
+body.dark-mode footer {
+  background: #222;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+  header { flex-direction: column; align-items: flex-start; }
+  .actions { gap: 10px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  th, td { padding: 10px; font-size: 14px; }
+  .modal-content { width: 92%; margin: 12% auto; font-size: 16px; }
+}
+@media (max-width: 480px) {
+  header h1 { font-size: 20px; text-align: center; }
+  th, td { font-size: 12px; }
+}
